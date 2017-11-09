@@ -1,35 +1,29 @@
--- Fixed Errors When Play With SAC:R
+-- Change FHPred to TRPred
 
-if myHero.charName ~= "Caitlyn" or not FileExist(LIB_PATH .. "FHPrediction.lua") then return end
+if myHero.charName ~= "Caitlyn" or not FileExist(LIB_PATH .. "TRPrediction.lua") then return end
 
-require 'FHPrediction'
-local version = 0.5
+require 'TRPrediction'
+local version = 0.6
 local shouldcombo = false
 local lastwuse = 0
 local rrange = {2000, 2500, 3000}
-local MyESpell = {
-	range = 750,
-	speed = 2000,
+local MyQSpell = {
+	range = 1300,
+	speed = 2200,
 	radius = 90,
-	delay = 0.4,
-	collision = {
-	[CollisionObjectTypes.Champion] = false, 
-	[CollisionObjectTypes.Minion] = true, 
-	[CollisionObjectTypes.YasuoWall] = true
-	},
-	type = SkillShotType.SkillshotMissileLine,
+	delay = 0.625,
+}
+local MyESpell = {
+	range = 800,
+	speed = 1600,
+	radius = 70,
+	delay = 0.125,
 }
 local MyWSpell = {
 	range = 800,
 	speed = 2000,
 	radius = 75,
 	delay = 0.25,
-	collision = {
-	[CollisionObjectTypes.Champion] = false, 
-	[CollisionObjectTypes.Minion] = false, 
-	[CollisionObjectTypes.YasuoWall] = false
-	},
-	type = SkillShotType.SkillshotCircle,
 }
 local WCC = {
 	['Spells'] = {
@@ -108,6 +102,11 @@ function OnLoad()
 	MenuCait.draw:addParam("DrawW", "Draw (W) Range", SCRIPT_PARAM_ONOFF, true)
 	MenuCait.draw:addParam("DrawE", "Draw (E) Range", SCRIPT_PARAM_ONOFF, true)
 	MenuCait.draw:addParam("DrawR", "Draw (R) Range", SCRIPT_PARAM_ONOFF, true)
+	if TRPrediction then
+		TQ = TR_BindSS({type = 'IsLinear', delay = MyQSpell.delay, range = MyQSpell.range, width = MyQSpell.radius, speed = MyQSpell.speed, allowedCollisionCount = math.huge})
+		TE = TR_BindSS({type = 'IsLinear', delay = MyESpell.delay, range = MyESpell.range, width = MyESpell.radius, speed = MyESpell.speed, allowedCollisionCount = math.huge})
+		TW = TR_BindSS({type = 'IsRadial', delay = MyWSpell.delay, range = MyWSpell.range, radius = MyWSpell.radius, speed = MyWSpell.speed, allowedCollisionCount = math.huge})
+	end
 end
 
 function OnTick()
@@ -141,8 +140,8 @@ function OnTick()
 	end
 	if ComboActive() and ValidTarget(TargetSelector.target) then
 		if shouldcombo and MenuCait.combo.ComboUseQ and MenuCait.combo.ComboUseW and MenuCait.combo.ComboUseE then
-			local pos, hc, info = FHPrediction.GetPrediction(MyESpell, TargetSelector.target)
-			local pos3, hc3, info3 = FHPrediction.GetPrediction("Q", TargetSelector.target)
+			local pos, hc, info = TP:GetPrediction(TE, TargetSelector.target, myHero)
+			local pos3, hc3, info3 = TP:GetPrediction(TQ, TargetSelector.target, myHero)
 			if pos and hc >= 1 and info.collision and info.collision.amount == 0 and pos3 and GetDistance(TargetSelector.target) <= MyESpell.range - 300 then	
 				CastSpell(_E, pos.x, pos.z)	
 				if lastwuse + 3 < os.clock() then
@@ -153,7 +152,7 @@ function OnTick()
 				end, 0.15)
 			elseif info.collision and info.collision.amount ~= 0 then
 				if GetDistance(TargetSelector.target) > myHero.range + 65 and GetDistance(TargetSelector.target) <= 1300 then
-					local pos, hc, info = FHPrediction.GetPrediction("Q", TargetSelector.target)
+					local pos, hc, info = TP:GetPrediction(TQ, TargetSelector.target, myHero)
 					if pos and hc >= 1 then
 						CastSpell(_Q, pos.x, pos.z)
 					end
@@ -162,28 +161,28 @@ function OnTick()
 		end
 		if not shouldcombo and ValidTarget(TargetSelector.target) then
 			if MenuCait.combo.ComboUseQ and myHero:CanUseSpell(_Q) == READY and GetDistance(TargetSelector.target) > myHero.range + 65 and GetDistance(TargetSelector.target) <= 1300 then
-				local pos, hc, info = FHPrediction.GetPrediction("Q", TargetSelector.target)
-				if pos and hc >= 1.1 then
+				local pos, hc, info = TP:GetPrediction(TQ, TargetSelector.target, myHero)
+				if pos and hc >= 1 then
 					CastSpell(_Q, pos.x, pos.z)
 				end
 			end
 			if MenuCait.combo.ComboUseW and GetDistance(TargetSelector.target) <= MyWSpell.range and myHero:CanUseSpell(_W) == READY and lastwuse + 3 < os.clock() then
-				local pos, hc, info = FHPrediction.GetPrediction(MyWSpell, TargetSelector.target)
+				local pos, hc, info = TP:GetPrediction(TW, TargetSelector.target, myHero)
 				if pos and hc >= 1 then
 					CastSpell(_W, pos.x, pos.z)
 				end
 			end
 			if MenuCait.combo.ComboUseE and GetDistance(TargetSelector.target) <= MyESpell.range and myHero:CanUseSpell(_E) == READY then
-				local pos, hc, info = FHPrediction.GetPrediction(MyESpell, TargetSelector.target)
-				if pos and hc >= 1.1 and info.collision and info.collision.amount == 0 then
+				local pos, hc, info = TP:GetPrediction(TE, TargetSelector.target, myHero)
+				if pos and hc >= 1 and info.collision and info.collision.amount == 0 then
 					CastSpell(_E, pos.x, pos.z)
 				end
 			end
 		end
 	end
 	if HarassActive() and ValidTarget(TargetSelector.target) and myHero:CanUseSpell(_Q) == READY and MenuCait.harass.HarassUseQ and ManaPC() >= MenuCait.harass.HarassQMana then
-		local pos, hc, info = FHPrediction.GetPrediction("Q", TargetSelector.target)
-		if pos and hc >= 1.1 and GetDistance(TargetSelector.target) > myHero.range + 65 and GetDistance(TargetSelector.target) <= 1300 then
+		local pos, hc, info = TP:GetPrediction(TQ, TargetSelector.target, myHero)
+		if pos and hc >= 1 and GetDistance(TargetSelector.target) > myHero.range + 65 and GetDistance(TargetSelector.target) <= 1300 then
 			CastSpell(_Q, pos.x, pos.z)
 		end
 	end
