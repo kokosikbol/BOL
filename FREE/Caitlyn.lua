@@ -3,9 +3,10 @@
 if myHero.charName ~= "Caitlyn" or not FileExist(LIB_PATH .. "TRPrediction.lua") then return end
 
 require 'TRPrediction'
-local version = 0.6
+local version = 0.7
 local shouldcombo = false
 local lastwuse = 0
+local TP
 local rrange = {2000, 2500, 3000}
 local MyQSpell = {
 	range = 1300,
@@ -103,6 +104,7 @@ function OnLoad()
 	MenuCait.draw:addParam("DrawE", "Draw (E) Range", SCRIPT_PARAM_ONOFF, true)
 	MenuCait.draw:addParam("DrawR", "Draw (R) Range", SCRIPT_PARAM_ONOFF, true)
 	if TRPrediction then
+		TP = TRPrediction()
 		TQ = TR_BindSS({type = 'IsLinear', delay = MyQSpell.delay, range = MyQSpell.range, width = MyQSpell.radius, speed = MyQSpell.speed, allowedCollisionCount = math.huge})
 		TE = TR_BindSS({type = 'IsLinear', delay = MyESpell.delay, range = MyESpell.range, width = MyESpell.radius, speed = MyESpell.speed, allowedCollisionCount = math.huge})
 		TW = TR_BindSS({type = 'IsRadial', delay = MyWSpell.delay, range = MyWSpell.range, radius = MyWSpell.radius, speed = MyWSpell.speed, allowedCollisionCount = math.huge})
