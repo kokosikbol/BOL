@@ -1,9 +1,9 @@
--- Fixed Errors In Comob Mode
+-- Fixed Pred
 
 if myHero.charName ~= "Caitlyn" or not FileExist(LIB_PATH .. "TRPrediction.lua") then return end
 
 require 'TRPrediction'
-local version = 0.71
+local version = 0.72
 local shouldcombo = false
 local lastwuse = 0
 local TP
@@ -144,7 +144,7 @@ function OnTick()
 		if shouldcombo and MenuCait.combo.ComboUseQ and MenuCait.combo.ComboUseW and MenuCait.combo.ComboUseE then
 			local pos, hc = TP:GetPrediction(TE, TargetSelector.target, myHero)
 			local pos3, hc3 = TP:GetPrediction(TQ, TargetSelector.target, myHero)
-			if pos and hc >= 1 and pos3 and GetDistance(TargetSelector.target) <= MyESpell.range - 300 then	
+			if pos and hc and pos3 and GetDistance(TargetSelector.target) <= MyESpell.range - 300 then	
 				CastSpell(_E, pos.x, pos.z)	
 				if lastwuse + 3 < os.clock() then
 					CastSpell(_W, pos.x, pos.z)
@@ -155,7 +155,7 @@ function OnTick()
 			else
 				if GetDistance(TargetSelector.target) > myHero.range + 65 and GetDistance(TargetSelector.target) <= 1300 then
 					local pos, hc = TP:GetPrediction(TQ, TargetSelector.target, myHero)
-					if pos and hc >= 1 then
+					if pos and hc then
 						CastSpell(_Q, pos.x, pos.z)
 					end
 				end
@@ -164,19 +164,19 @@ function OnTick()
 		if not shouldcombo and ValidTarget(TargetSelector.target) then
 			if MenuCait.combo.ComboUseQ and myHero:CanUseSpell(_Q) == READY and GetDistance(TargetSelector.target) > myHero.range + 65 and GetDistance(TargetSelector.target) <= 1300 then
 				local pos, hc = TP:GetPrediction(TQ, TargetSelector.target, myHero)
-				if pos and hc >= 1 then
+				if pos and hc then
 					CastSpell(_Q, pos.x, pos.z)
 				end
 			end
 			if MenuCait.combo.ComboUseW and GetDistance(TargetSelector.target) <= MyWSpell.range and myHero:CanUseSpell(_W) == READY and lastwuse + 3 < os.clock() then
 				local pos, hc = TP:GetPrediction(TW, TargetSelector.target, myHero)
-				if pos and hc >= 1 then
+				if pos and hc then
 					CastSpell(_W, pos.x, pos.z)
 				end
 			end
 			if MenuCait.combo.ComboUseE and GetDistance(TargetSelector.target) <= MyESpell.range and myHero:CanUseSpell(_E) == READY then
 				local pos, hc = TP:GetPrediction(TE, TargetSelector.target, myHero)
-				if pos and hc >= 1 then
+				if pos and hc then
 					CastSpell(_E, pos.x, pos.z)
 				end
 			end
@@ -184,7 +184,7 @@ function OnTick()
 	end
 	if HarassActive() and ValidTarget(TargetSelector.target) and myHero:CanUseSpell(_Q) == READY and MenuCait.harass.HarassUseQ and ManaPC() >= MenuCait.harass.HarassQMana then
 		local pos, hc = TP:GetPrediction(TQ, TargetSelector.target, myHero)
-		if pos and hc >= 1 and GetDistance(TargetSelector.target) > myHero.range + 65 and GetDistance(TargetSelector.target) <= 1300 then
+		if pos and hc and GetDistance(TargetSelector.target) > myHero.range + 65 and GetDistance(TargetSelector.target) <= 1300 then
 			CastSpell(_Q, pos.x, pos.z)
 		end
 	end
